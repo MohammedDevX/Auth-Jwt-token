@@ -8,7 +8,7 @@ using User_service.ViewModels;
 
 namespace User_service.Services
 {
-    public class AuthService(AppDbContext context, IConfiguration config): IAuthService
+    public class AuthService(AppDbContext context): IAuthService
     {
         public async Task<ClientDTO?> Register(ClientRegisterVM clientvm)
         {
@@ -29,9 +29,23 @@ namespace User_service.Services
             return clientdto;
         }
 
-        public async Task<string> Login(ClientLoginVM clientvm)
+        public async Task<Client?> Login(ClientLoginVM clientvm)
         {
+            Client client = ClientMP.TransferDataFromClientVMToClient(clientvm);
 
+            Client clientDB = await context.Clients.FirstOrDefaultAsync(c => c.Email == client.Email);
+            if (clientDB == null)
+            {
+                return null;
+            }
+
+            var dehashe = new PasswordHasher<Client>();
+            var checkPass = dehashe.VerifyHashedPassword(clientDB, clientDB.MotPasse, client.MotPasse);
+            if (checkPass == PasswordVerificationResult.Failed)
+            {
+                return null;
+            }
+            return clientDB;
         }
     }
 }

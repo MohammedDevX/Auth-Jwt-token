@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using User_service.Data;
 using User_service.DTOS;
-using User_service.Mappers;
 using User_service.Models;
 using User_service.Services;
 using User_service.ViewModels;
@@ -15,13 +14,13 @@ namespace User_service.Controllers
     public class UserController : ControllerBase
     {
         private AppDbContext context;
-        private JwtService Jwttoken;
         private IAuthService auth;
-        public UserController(AppDbContext context, JwtService token, IAuthService auth)
+        private JwtService jwttoken;
+        public UserController(AppDbContext context, IAuthService auth, JwtService token)
         {
             this.context = context;
-            Jwttoken = token;
             this.auth = auth;
+            jwttoken = token;
         }
 
         [HttpGet]
@@ -39,58 +38,46 @@ namespace User_service.Controllers
         }
 
         [HttpPost("register")]
-        public ActionResult<ClientDTO> Register(ClientRegisterVM clientvm)
+        public async Task<ActionResult<ClientDTO>> Register(ClientRegisterVM clientvm)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
-            ClientDTO clientdto = auth.Register(clientvm);
+
+            ClientDTO clientdto = await auth.Register(clientvm);
+
             if (clientdto == null)
             {
                 return BadRequest();
             }
-            //Client client = ClientMP.TransferDataFromClientVMToClient(clientvm);
 
-            //bool checkClient = context.Clients.Any(c => c.NomUser == client.NomUser || c.Email == client.Email);
-            //if (checkClient)
-            //{
-            //    return BadRequest();
-            //}
-
-            //// Hashing the password of the object coming from the frontend
-            //var passHashed = new PasswordHasher<Client>();
-            //client.MotPasse = passHashed.HashPassword(client, client.MotPasse);
-            //context.Add(client);
-            //context.SaveChanges();
-            //ClientDTO clientdto = ClientMP.ClientToClientDTO(client);
             return CreatedAtAction(nameof(Index), new { Id = clientdto.Id }, clientdto);
         }
 
         [HttpPost("login")]
-        public ActionResult Login(ClientLoginVM clientvm)
+        public async Task<ActionResult> Login(ClientLoginVM clientvm)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest("1");
+                return BadRequest();
             }
 
-            Client client = ClientMP.TransferDataFromClientVMToClient(clientvm);
-
-            Client clientDB = context.Clients.FirstOrDefault(c => c.Email == client.Email);
-            if (clientDB == null)
+            Client client = await auth.Login(clientvm);
+            if (client == null)
             {
-                return BadRequest("2");
+                return BadRequest();
             }
 
-            var dehashe = new PasswordHasher<Client>();
-            var checkPass = dehashe.VerifyHashedPassword(clientDB, clientDB.MotPasse, client.MotPasse);
-            if (checkPass == PasswordVerificationResult.Failed)
-            {
-                return BadRequest("3");
-            }
-            string token = Jwttoken.GenerateToken(clientDB);
+            string token = jwttoken.GenerateToken(client);
             return Ok(token);
+        }
+
+        [Authorize] // Here we call the middleware UseAuthorize to check if the user has the access to this action
+        [HttpGet("auth")]
+        public IActionResult AuthEndpoint()
+        {
+            return Ok("Your authed");
         }
     }
 }

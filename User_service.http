@@ -12,8 +12,8 @@ Accept: application/json
 POST {{routeURL}}/api/User/register
 Content-Type: application/json
 {
-  "NomUser": "samasxssssS",
-  "Email": "samas@gmail.com",
+  "NomUser": "samsssS",
+  "Email": "samas@gmail.m",
   "MotPasse": "samado"
 }
 
@@ -25,3 +25,8 @@ Content-Type: application/json
   "Email": "samas@gmail.com",
   "MotPasse": "samado"
 }
+
+###
+
+GET {{routeURL}}/api/User/auth
+Accept: application/json
