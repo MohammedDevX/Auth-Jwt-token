@@ -79,5 +79,14 @@ namespace User_service.Controllers
         {
             return Ok("Your authed");
         }
+
+        [Authorize(Roles = "Client")] // Here only the user with Client role who are accessible to this endpoint
+        // The token contains the Role claim that are filled by the role of user, so like that the middleware can 
+        // check the role
+        [HttpGet("authclient")]
+        public IActionResult AuthClientEndpoint()
+        {
+            return Ok("Your authed as Client!");
+        }
     }
 }
