@@ -1,0 +1,27 @@
+@routeURL = http://localhost:5194
+
+GET {{User_service_HostAddress}}/weatherforecast/
+Accept: application/json
+
+### 
+GET {{routeURL}}/api/User
+Accept: application/json
+
+### 
+
+POST {{routeURL}}/api/User/register
+Content-Type: application/json
+{
+  "NomUser": "samasxssssS",
+  "Email": "samas@gmail.com",
+  "MotPasse": "samado"
+}
+
+###
+
+POST {{routeURL}}/api/User/login
+Content-Type: application/json
+{
+  "Email": "samas@gmail.com",
+  "MotPasse": "samado"
+}
