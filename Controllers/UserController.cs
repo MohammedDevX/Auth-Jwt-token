@@ -56,7 +56,7 @@ namespace User_service.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult> Login(ClientLoginVM clientvm)
+        public async Task<ActionResult<TokenDTO>> Login(ClientLoginVM clientvm)
         {
             if (!ModelState.IsValid)
             {
@@ -69,8 +69,30 @@ namespace User_service.Controllers
                 return BadRequest();
             }
 
-            string token = jwttoken.GenerateToken(client);
-            return Ok(token);
+            //TokenDTO tokens = new TokenDTO();
+            //tokens.AccesToken = client.RefreshToken;
+            //tokens.RefreshToken = await jwttoken.SaveGenerateRefreshToken(client);
+
+            // New method to fill tokens object attributes :
+            TokenDTO tokens = new TokenDTO
+            {
+                AccesToken = jwttoken.GenerateToken(client),
+                RefreshToken = await jwttoken.SaveGenerateRefreshToken(client)
+            };
+            
+            return Ok(tokens);
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<TokenDTO>> RefreshToken(RefreshTokenRequestDTO request) 
+        {
+            TokenDTO res = await jwttoken.RefreshTokens(request);
+            if (res == null || res.AccesToken == null || request.RefreshToken == null)
+            {
+                return Unauthorized();
+            }
+
+            return res;
         }
 
         [Authorize] // Here we call the middleware UseAuthorize to check if the user has the access to this action

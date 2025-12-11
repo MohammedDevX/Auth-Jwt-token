@@ -8,10 +8,11 @@ namespace User_service.Models
     public class Client
     {
         public int Id { get; set; }
-        [Required]
         public string NomUser { get; set; } = null!;
         public string Email { get; set; } = null!;
         public string MotPasse { get; set; } = null!;
         public Role Role { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiry { get; set; }
     }
 }

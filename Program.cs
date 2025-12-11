@@ -13,7 +13,7 @@ IConfiguration config = builder.Configuration;
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-builder.Services.AddSingleton<JwtService>();
+builder.Services.AddScoped<JwtService>();
 
 // Here we announce the server that we are using Jwt bearer token
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
