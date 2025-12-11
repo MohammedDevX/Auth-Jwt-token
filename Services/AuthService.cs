@@ -10,42 +10,55 @@ namespace User_service.Services
 {
     public class AuthService(AppDbContext context): IAuthService
     {
-        public async Task<ClientDTO?> Register(ClientRegisterVM clientvm)
+        public async Task<UserDTO?> Register(UserRegisterVM uservm)
         {
-            Client client = ClientMP.TransferDataFromClientVMToClient(clientvm);
+            User user = UserMP.TransferDataFromUserVMToUser(uservm);
 
-            bool checkClient = await context.Clients.AnyAsync(c => c.NomUser == client.NomUser || c.Email == client.Email);
-            if (checkClient)
+            bool checkuser = await context.Users.AnyAsync(c => c.NomUser == user.NomUser || c.Email == user.Email);
+            if (checkuser)
             {
                 return null;
             }
 
             // Hashing the password of the object coming from the frontend
-            var passHashed = new PasswordHasher<Client>();
-            client.MotPasse = passHashed.HashPassword(client, client.MotPasse);
-            await context.AddAsync(client);
+            var passHashed = new PasswordHasher<User>();
+            user.MotPasse = passHashed.HashPassword(user, user.MotPasse);
+            await context.Users.AddAsync(user);
             await context.SaveChangesAsync();
-            ClientDTO clientdto = ClientMP.ClientToClientDTO(client);
-            return clientdto;
+            
+            if (user.Role.ToString() == "Client")
+            {
+                Client client = UserMP.UserToClient(user);
+                await context.Clients.AddAsync(client);
+            } else
+            {
+                Admin admin = UserMP.UserToAdmin(user);
+                await context.Admins.AddAsync(admin);
+            }
+
+            await context.SaveChangesAsync();
+
+            UserDTO userdto = UserMP.UserToUserDTO(user);
+            return userdto;
         }
 
-        public async Task<Client?> Login(ClientLoginVM clientvm)
+        public async Task<User?> Login(UserLoginVM uservm)
         {
-            Client client = ClientMP.TransferDataFromClientVMToClient(clientvm);
+            User user = UserMP.TransferDataFromUserVMToUser(uservm);
 
-            Client clientDB = await context.Clients.FirstOrDefaultAsync(c => c.Email == client.Email);
-            if (clientDB == null)
+            User userDB = await context.Users.FirstOrDefaultAsync(c => c.Email == user.Email);
+            if (userDB == null)
             {
                 return null;
             }
 
-            var dehashe = new PasswordHasher<Client>();
-            var checkPass = dehashe.VerifyHashedPassword(clientDB, clientDB.MotPasse, client.MotPasse);
+            var dehashe = new PasswordHasher<User>();
+            var checkPass = dehashe.VerifyHashedPassword(userDB, userDB.MotPasse, user.MotPasse);
             if (checkPass == PasswordVerificationResult.Failed)
             {
                 return null;
             }
-            return clientDB;
+            return userDB;
         }
     }
 }

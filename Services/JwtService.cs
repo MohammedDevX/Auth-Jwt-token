@@ -21,17 +21,17 @@ namespace User_service.Services
             this.context = context;
         }
 
-        public string GenerateToken(Client client)
+        public string GenerateToken(User user)
         {
             // Here we have a List of Claim, Claim is an object who contain informations about the user, we are and 
             // we are going sauvgarde the clamis in the JWT token in the payload 
             // Every object Claim contain one information, so we create a List of claims who contain all informations 
             var claims = new List<Claim>()
             {
-                new Claim(ClaimTypes.NameIdentifier, client.Id.ToString()),
-                new Claim(ClaimTypes.Email, client.Email),
-                new Claim(ClaimTypes.Name, client.NomUser),
-                new Claim(ClaimTypes.Role, client.Role.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name, user.NomUser),
+                new Claim(ClaimTypes.Role, user.Role.ToString()),
             };
 
             // Cette class permet de generer un key secret qui nous permet de signer le jwt puisque que l'api le suivre
@@ -74,37 +74,37 @@ namespace User_service.Services
             return Convert.ToBase64String(randNum); // Convertir the table to a string
         }
 
-        public async Task<string> SaveGenerateRefreshToken(Client client)
+        public async Task<string> SaveGenerateRefreshToken(User user)
         {
             string refToken = GenerateRefreshToken();
-            client.RefreshToken = refToken;
-            client.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            user.RefreshToken = refToken;
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
             await context.SaveChangesAsync();
             return refToken;
         }
 
-        private async Task<Client?> ValidateRefreshToken(int UserId, string RefreshToken)
+        private async Task<User?> ValidateRefreshToken(int UserId, string RefreshToken)
         {
-        Client client = await context.Clients.FindAsync(UserId);
-            if (client == null || client.RefreshToken != RefreshToken || client.RefreshTokenExpiry <= DateTime.UtcNow)
+        User user = await context.Users.FindAsync(UserId);
+            if (user == null || user.RefreshToken != RefreshToken || user.RefreshTokenExpiry <= DateTime.UtcNow)
             {
                 return null;
             }
 
-            return client;
+            return user;
         }
 
         public async Task<TokenDTO?> RefreshTokens(RefreshTokenRequestDTO request)
         {
-            Client? client = await ValidateRefreshToken(request.UserId, request.RefreshToken);
-            if (client == null)
+            User? user = await ValidateRefreshToken(request.UserId, request.RefreshToken);
+            if (user == null)
             {
                 return null;
             }
 
             return new TokenDTO
             {
-                AccesToken = GenerateToken(client),
+                AccesToken = GenerateToken(user),
                 RefreshToken = request.RefreshToken
             };
         }

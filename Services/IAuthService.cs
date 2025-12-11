@@ -6,7 +6,7 @@ namespace User_service.Services
 {
     public interface IAuthService
     {
-        public Task<ClientDTO?> Register(ClientRegisterVM client);
-        public Task<Client?> Login(ClientLoginVM client);
+        public Task<UserDTO?> Register(UserRegisterVM user);
+        public Task<User?> Login(UserLoginVM user);
     }
 }

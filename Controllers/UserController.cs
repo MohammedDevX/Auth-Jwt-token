@@ -24,47 +24,47 @@ namespace User_service.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<Client>> Index()
+        public async Task<ActionResult<User>> Index()
         {
-            List<Client> clients = await context.Clients.ToListAsync();
-            return Ok(clients);
+            List<User> users = await context.Users.ToListAsync();
+            return Ok(users);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Client>> Index(int id)
+        public async Task<ActionResult<User>> Index(int id)
         {
-            Client client = await context.Clients.FindAsync(id);
-            return Ok(client);
+            User user = await context.Users.FindAsync(id);
+            return Ok(user);
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<ClientDTO>> Register(ClientRegisterVM clientvm)
+        public async Task<ActionResult<UserDTO>> Register(UserRegisterVM uservm)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            ClientDTO clientdto = await auth.Register(clientvm);
+            UserDTO userdto = await auth.Register(uservm);
 
-            if (clientdto == null)
+            if (userdto == null)
             {
                 return BadRequest();
             }
 
-            return CreatedAtAction(nameof(Index), new { Id = clientdto.Id }, clientdto);
+            return CreatedAtAction(nameof(Index), new { Id = userdto.Id }, userdto);
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<TokenDTO>> Login(ClientLoginVM clientvm)
+        public async Task<ActionResult<TokenDTO>> Login(UserLoginVM uservm)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            Client client = await auth.Login(clientvm);
-            if (client == null)
+            User user = await auth.Login(uservm);
+            if (user == null)
             {
                 return BadRequest();
             }
@@ -76,13 +76,18 @@ namespace User_service.Controllers
             // New method to fill tokens object attributes :
             TokenDTO tokens = new TokenDTO
             {
-                AccesToken = jwttoken.GenerateToken(client),
-                RefreshToken = await jwttoken.SaveGenerateRefreshToken(client)
+                AccesToken = jwttoken.GenerateToken(user),
+                RefreshToken = await jwttoken.SaveGenerateRefreshToken(user)
             };
             
             return Ok(tokens);
         }
 
+        // The scenario here is that whene the user made a login the JwtServcie create for him a accces and refresh 
+        // token, the access token expire every 15 min for ex, now the user want to access in to secure endpoint 
+        // the UseAuthentication middleware check if the access token is valid, if the dateExpire is end, he return 
+        // 401 status code, and the front must call the refresh-token action, and the check if the refreshtoken 
+        // is still valid, if yes he regenerate new access token
         [HttpPost("refresh-token")]
         public async Task<ActionResult<TokenDTO>> RefreshToken(RefreshTokenRequestDTO request) 
         {

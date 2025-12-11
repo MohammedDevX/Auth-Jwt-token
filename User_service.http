@@ -12,9 +12,10 @@ Accept: application/json
 POST {{routeURL}}/api/User/register
 Content-Type: application/json
 {
-  "NomUser": "samsssS",
-  "Email": "samas@gmail.m",
-  "MotPasse": "samado"
+  "NomUser": "MohammedX23DEV",
+  "Email": "mohammed@gmail.com",
+  "MotPasse": "12345",
+  "Role": 1,
 }
 
 ###

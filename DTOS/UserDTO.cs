@@ -1,6 +1,6 @@
 ﻿namespace User_service.DTOS
 {
-    public class ClientDTO
+    public class UserDTO
     {
         public int Id { get; set; }
         public string NomUser { get; set; } = null!;
